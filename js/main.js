@@ -1,48 +1,80 @@
 const CONTAINER = document.querySelector('#container');
 const SCREEN = document.querySelector('#screen');
-let total = '',
-    operator = '',
+let operator = '',
     num1 = '',
     num2 = '';
 
 
 function init() {
 
-  let numInputButtons = document.querySelectorAll('div.num');
+  let numInputButtons = document.querySelectorAll('div.input');
 
-  // Check for number keypresses
+  // Check for number and operator keypresses
   document.querySelector('body').addEventListener('keypress', keyInput);
-  // Add event add event listeners to number inputs
+  // Add click event listeners to input buttons
   for(let i = 0; i < numInputButtons.length; i++) {
-    numInputButtons[i].addEventListener('click', numInput);
-
+    numInputButtons[i].addEventListener('click', clickInput);
   }
 
   // Set ready message
   SCREEN.innerHTML = 'Ready for input';
 }
 
-function operate(operator, num1, num2) {
-  // Placeholder
-  clear();
+function operate(op, num1, num2) {
+  num1 = num1.includes('.') ? parseFloat(num1) : parseInt(num1);
+  num2 = num2.includes('.') ? parseFloat(num2) : parseInt(num2);
+  if(op === '+') {
+    add(num1, num2);
+  } else if (op === '-') {
+    subtract(num1, num2);
+  } else if (op === '*') {
+    multiply(num1, num2);
+  } else if (op === '/') {
+    divide(num1, num2);
+  }
 };
 
-function add(num1, num2) {
-
+function add(number1, number2) {
+  num1 = (number1 + number2).toString();
+  num2 ='';
+  SCREEN.innerHTML = num1;
 }
 
-function subtract(num1, num2) {
-
+function subtract(number1, number2) {
+  num1 = (number1 - number2).toString();
+  num2 ='';
+  SCREEN.innerHTML = num1;
 }
 
-function multiply(num1, num2) {
-
+function multiply(number1, number2) {
+  num1 = (number1 * number2).toString();
+  num2 ='';
+  SCREEN.innerHTML = num1;
 }
 
-function divide(num1, num2) {
-
+function divide(number1, number2) {
+  num1 = (number1 / number2).toString();
+  num2 ='';
+  SCREEN.innerHTML = num1;
 }
 
+function decimal(){
+  if (num1 === '') {
+    num1 = '0.';
+    SCREEN.innerHTML = '0.0'
+  } else if ((num1 && operator) && !num2) {
+    num2 = '0.';
+    SCREEN.innerHTML = '0.0'
+  } else if ((num1 && num2 === '') && !num1.includes('.')) {
+    num1 = num1 + '.';
+    SCREEN.innerHTML = num1;
+  } else if (num2 && !num2.includes('.')) {
+    num2 = num2 + '.';
+    SCREEN.innerHTML = num2;
+  }
+}
+
+// Reset Calculator to starting state
 function clear() {
   total = '',
   operator = '',
@@ -54,6 +86,16 @@ function clear() {
       SCREEN.innerHTML = 'Ready for input';
     }
   }, 1000);
+}
+
+function backspace() {
+  if(!operator && num1) {
+    num1 = num1.slice(0, -1);
+    SCREEN.innerHTML = num1;
+  } else if ((num1 && operator) && num2) {
+    num2 = num2.slice(0, -1);
+    SCREEN.innerHTML = num2;
+  }
 }
 
 function keyInput(e) {
@@ -68,51 +110,67 @@ function keyInput(e) {
     operateCheck();
   } else if (key === 43) {
     // Add/Plus logic
-    preOperatorCheck(keyChar);
+    operatorCheck(keyChar);
   } else if (key === 45) {
     // Subtract/Minus Logic
-    preOperatorCheck(keyChar);
+    operatorCheck(keyChar);
   } else if (key === 42) {
     // Multiply/Asterisk Logic
-    preOperatorCheck(keyChar);
+    operatorCheck(keyChar);
   } else if (key === 47) {
     // Divide/Forward Slash Logic
-    preOperatorCheck(keyChar);
+    operatorCheck(keyChar);
   } else if (key === 46) {
     // Decimal/Period Logic
-    SCREEN.innerHTML = keyChar;
+    decimal();
   } else if (key === 99) {
     clear();
+  } else if (key === 98) {
+    backspace();
   } else {
     console.log(key);
   }
 }
 
-function numInput() {
-  let key = this.innerHTML;
-  numSet(key);
+function clickInput() {
+  let inputContents = this.textContent;
+  console.log(inputContents);
+  if(/\d/.test(inputContents)) {
+    numSet(inputContents);
+  } else if (inputContents === '=') {
+    operateCheck();
+  } else if (inputContents === 'Clear') {
+    clear();
+  } else if (inputContents === '.') {
+    decimal();
+  } else if (this.id === 'backspace') {
+    backspace();
+  } else {
+    operatorCheck(inputContents);
+  }
 }
 
-// function to run when number input buttons are clicked or pushed
+// function to run when number input buttons are clicked or pressed
 function numSet(key) {
-  if(!num1) {
-    num1 = key;
-    SCREEN.innerHTML = key;
-  } else if ((num1 && !num2) && operator) {
-    num2 = key;
-    SCREEN.innerHTML = key;
+  if(!operator) {
+    num1 = num1 + key;
+    SCREEN.innerHTML = num1;
+  } else if (num1 && operator) {
+      num2 = num2 + key;
+      SCREEN.innerHTML = num2;
   }
   return;
 }
 
-function preOperatorCheck(key) {
-  // Check that the first number selection has been made
-  if(num1 !== '') {
+// function to run when operator input buttons are clicked or pressed
+function operatorCheck(key) {
+  if(num1 && !num2) {
     operator = key;
     SCREEN.innerHTML = key;
-    return true;
+    return;
   }
-  return false;
+  operateCheck();
+  return;
 }
 
 function operateCheck() {
